@@ -1,0 +1,50 @@
+name: Update README cards
+
+on:
+  schedule:
+    - cron: "0 0 * * *" # Runs once daily at midnight
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Generate stats card
+        uses: stats-organization/github-readme-stats-action@v2
+        with:
+          card: stats
+          options: username=${{ github.repository_owner }}&show_icons=true&theme=material-palenight
+          path: profile/stats.svg
+          token: ${{ secrets.TOKEN }}
+
+      - name: Commit cards
+        run: |
+          git clone https://InfinityYeah:${{ secrets.TOKEN }}@github.com/InfinityYeah/InfinityYeah
+          cd InfinityYeah
+          cp README.md ..
+          cp -r .github ..
+          git config user.name "InfinityYeah"
+          git config user.email "183677919+InfinityYeah@users.noreply.github.com"
+          git reset --hard 7da8a34eba097603c9b8704c545cbec0fe67ada5
+          git push --force
+          cp -r ../profile .
+          cp ../README.md .
+          cp -r ../.github .
+          git add profile/*
+          git commit -m "Update README cards"
+          git push
+          git add README.md
+          git commit -m "Update README.md"
+          git push
+          git add .github/workflows/test.yml
+          git commit -m "Update workflow"
+          git push
+          git remote remove origin
+          cd ..
+          rm -rf InfinityYeah .github README.md

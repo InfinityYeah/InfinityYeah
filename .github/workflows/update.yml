@@ -1,0 +1,61 @@
+name: Update README cards
+
+on:
+  schedule:
+    - cron: "0 0 * * 0" # Runs once daily at midnight
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: stats-organization/github-readme-stats-action@v2
+        with:
+          card: stats
+          options: username=InfinityYeah&show_icons=true&theme=material-palenight
+          path: profile/stats.svg
+          token: ${{ secrets.TOKEN }}
+          
+      - uses: Platane/snk/svg-only@v3
+        with:
+          github_user_name: InfinityYeah
+          outputs: |
+            profile/contribution-grid-snake.svg
+
+      - name: Commit cards
+        run: |
+          git clone https://InfinityYeah:${{ secrets.TOKEN }}@github.com/InfinityYeah/InfinityYeah
+          cd InfinityYeah
+          cp README.md ..
+          rm profile/stats.svg
+          rm profile/contribution-grid-snake.svg
+          cp -r profile ..
+          cp -r .github ..
+          git config user.name "InfinityYeah"
+          git config user.email "183677919+InfinityYeah@users.noreply.github.com"
+          git reset --hard 71eb6de7d157e3beeef9ef53e8e0d23428d2dcdb
+          cp -r ../profile .
+          cp -r ../.github .
+          cp ../README.md .
+          git add profile/* .github README.md
+          git commit -m "Update README"
+          git push --force
+          git remote remove origin
+          cd ..
+          rm -rf InfinityYeah README.md profile .github
+      - name: Delete workflow runs
+        uses: dmvict/clean-workflow-runs@v1.0.0
+        with:
+           token: ${{ secrets.TOKEN }}
+           repo: InfinityYeah/InfinityYeah
+           workflow_id: update.yml
+           branch: main
+           save_period: 1
+           save_min_runs_number: 1
+           dry: false
